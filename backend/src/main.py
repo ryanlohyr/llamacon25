@@ -8,10 +8,14 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import pathlib
 import asyncio
+
+from .meta_prompting_agent import MetaPromptingAgent
+
 from sentence_transformers import SentenceTransformer, util
 import faiss
 import json
 import uuid
+
 
 # Load environment variables from .env file
 # Try to load from current directory and parent directory
@@ -118,6 +122,18 @@ class EndSessionRequest(BaseModel):
     session_id: str
     final_code: str = ""
 
+
+class FeedbackRequest(BaseModel):
+    user_input: str
+    assistant_response: str
+    user_feedback: str = None
+
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
 # Active sessions storage
 active_sessions = {}
 
@@ -153,6 +169,7 @@ def session_outcome(session):
         tests_passed = False
 
     return final_output, tests_passed, error_count
+
 
 def score_turn(turn):
     if is_positive_feedback(turn["q"]):
@@ -324,6 +341,31 @@ async def end_session(request: EndSessionRequest):
         return {"status": "success", "score": session["score"], "outcome": session["final_output"]}
     
     except Exception as e:
+
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/feedback")
+async def process_feedback(request: FeedbackRequest):
+    try:
+        agent = MetaPromptingAgent()
+
+        try:
+            agent.load_meta_prompt()
+        except:
+            print("No existing meta prompt found. Starting fresh.")
+
+        system_prompt = "You are a helpful but casual assistant. Please use short responses."
+        instruction = agent.handle_feedback(last_user_input, last_assistant_response, feedback)
+        response = agent.llama_chat(user_input, system_prompt, use_meta_prompt=True)
+
+        # return 200 ?
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
         print("Error: ", e)
         print("Stack trace: ", traceback.format_exc())  
         raise HTTPException(status_code=500, detail=str(e))
+
