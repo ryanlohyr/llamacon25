@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageItem } from '@/components/MessageItem';
+import { MessageItem } from '@/components/Chat/MessageItem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useChat } from '@/hooks/useChat';
