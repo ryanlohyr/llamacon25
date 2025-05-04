@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import pathlib
 
 import asyncio
+from meta_prompting_agent import MetaPromptingAgent
 
 # Load environment variables from .env file
 # Try to load from current directory and parent directory
@@ -34,6 +35,13 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
     model: str = "gpt-3.5-turbo"
+
+
+class FeedbackRequest(BaseModel):
+    user_input: str
+    assistant_response: str
+    user_feedback: str = None
+
 
 
 @app.get("/")
@@ -75,3 +83,24 @@ async def create_chat_completion(request: ChatRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/feedback")
+async def process_feedback(request: FeedbackRequest):
+    try:
+        agent = MetaPromptingAgent()
+
+        try:
+            agent.load_meta_prompt()
+        except:
+            print("No existing meta prompt found. Starting fresh.")
+
+        system_prompt = "You are a helpful but casual assistant. Please use short responses."
+        instruction = agent.handle_feedback(last_user_input, last_assistant_response, feedback)
+        response = agent.llama_chat(user_input, system_prompt, use_meta_prompt=True)
+
+        # return 200 ?
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
