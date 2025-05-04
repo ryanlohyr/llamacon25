@@ -11,7 +11,15 @@ export default function ChatPage() {
   const router = useRouter();
   console.log("id: ", id);
 
-  const handleNewChat = () => {
+  const handleNewChat = async () => {
+    // send a background request to end the session
+    fetch("http://localhost:8000/api/end-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ session_id: id }),
+    });
     router.push("/");
   };
 

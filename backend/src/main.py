@@ -229,27 +229,46 @@ async def create_chat_completion(request: ChatRequest):
             
         # Look for a similar successful chain
         best_chain = find_best_chain(current_question)
+
+        hidden_prompt = build_prompt_from_chain(best_chain, current_question)
+
+        system_prompt = "You are a helpful assistant that can answer questions and help with tasks."
         
         # Prepare messages for the API call
-        openai_messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": hidden_prompt},
+        ]
+        
+        # Add user messages
+        messages.extend([{"role": msg.role, "content": msg.content} for msg in request.messages])
+
+        print("full messages: ", messages)
         
         # Create a streaming response
         stream = client.chat.completions.create(
             model='Llama-4-Maverick-17B-128E-Instruct-FP8',
-            messages=openai_messages,
+            messages=messages,
             stream=True
         )
         
         # Collect the full response
         full_response = ""
+
+        print("active_sessions: ", active_sessions)
         
         async def generate():
             nonlocal full_response
             for chunk in stream:
+                # print("chunk: ", chunk)
                 if chunk.choices and chunk.choices[0].delta.content:
                     content = chunk.choices[0].delta.content
+
+                    print("content: ", content)
+
                     full_response += content
-                    # Break the content into smaller chunks (individual characters)
+                    # yield content
+                    # Break the content into smaller chunk  s (individual characters)
                     for char in content:
                         yield char
                         # Add a small delay to simulate slower streaming
@@ -283,7 +302,8 @@ async def end_session(request: EndSessionRequest):
             session["final_code"] = request.final_code
         
         # Calculate reward
-        session["score"] = reward(session)
+        reward_score = reward(session)
+        session["score"] = reward_score
         
         # Add to session memory
         session_memory.append(session)
@@ -304,4 +324,6 @@ async def end_session(request: EndSessionRequest):
         return {"status": "success", "score": session["score"], "outcome": session["final_output"]}
     
     except Exception as e:
+        print("Error: ", e)
+        print("Stack trace: ", traceback.format_exc())  
         raise HTTPException(status_code=500, detail=str(e))
