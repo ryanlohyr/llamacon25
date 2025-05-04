@@ -39,11 +39,19 @@ export function useChat({
       // Clear input
       setInput('');
       
-      // Add initial assistant message for streaming
-      const assistantMessageIndex = messages.length;
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
-      
       try {
+        // Get current messages including the new user message
+        const currentMessages = await new Promise<Message[]>(resolve => {
+          setMessages(prev => {
+            resolve([...prev]); // Resolve with the current state including the user message
+            return prev;
+          });
+        });
+        
+        // Add initial assistant message for streaming
+        const assistantMessageIndex = currentMessages.length;
+        setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
+        
         // Make API request to backend
         const response = await fetch(apiEndpoint, {
           method: 'POST',
@@ -51,11 +59,11 @@ export function useChat({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            messages: [...messages, userMessage].map(msg => ({ 
+            messages: currentMessages.map(msg => ({ 
               role: msg.role, 
               content: msg.content 
             })),
-            model: 'gpt-3.5-turbo',
+            model: 'gpt-4o-mini',
           }),
         });
         
@@ -89,10 +97,12 @@ export function useChat({
           // Update the assistant message content
           setMessages((prev) => {
             const updated = [...prev];
-            updated[assistantMessageIndex] = {
-              role: 'assistant',
-              content: assistantResponse,
-            };
+            if (updated.length > assistantMessageIndex) {
+              updated[assistantMessageIndex] = {
+                role: 'assistant',
+                content: assistantResponse,
+              };
+            }
             return updated;
           });
         }
@@ -115,10 +125,13 @@ export function useChat({
         // Update the assistant message with error
         setMessages((prev) => {
           const updated = [...prev];
-          updated[assistantMessageIndex] = {
-            role: 'assistant',
-            content: 'Sorry, there was an error processing your request.',
-          };
+          // Only update if the message exists
+          if (updated.length > prev.length - 1) {
+            updated[prev.length - 1] = {
+              role: 'assistant',
+              content: 'Sorry, there was an error processing your request.',
+            };
+          }
           return updated;
         });
         
@@ -130,7 +143,7 @@ export function useChat({
         setIsLoading(false);
       }
     },
-    [apiEndpoint, messages, onResponse, onError]
+    [apiEndpoint, onResponse, onError] // Removed messages from dependency array
   );
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

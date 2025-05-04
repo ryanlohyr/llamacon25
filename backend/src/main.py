@@ -25,11 +25,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize OpenAI client
-# client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-print(os.environ.get("OPENAI_API_KEY"))
-
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 class ChatMessage(BaseModel):
