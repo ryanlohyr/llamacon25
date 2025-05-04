@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import pathlib
 
 import asyncio
-from meta_prompting_agent import MetaPromptingAgent
+from .meta_prompting_agent import MetaPromptingAgent
 
 # Load environment variables from .env file
 # Try to load from current directory and parent directory
