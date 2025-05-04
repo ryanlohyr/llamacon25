@@ -7,14 +7,16 @@ import { useChat } from '@/hooks/useChat';
 import { Send } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
-export function Chat() {
+export function Chat({ sessionId }: { sessionId?  : string }) {
   const { 
     messages, 
     input, 
     handleInputChange, 
     handleSubmit, 
     isLoading 
-  } = useChat();
+  } = useChat({
+    sessionId: sessionId
+  });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

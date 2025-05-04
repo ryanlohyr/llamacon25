@@ -9,6 +9,7 @@ export type Message = {
 
 export type UseChatProps = {
   apiEndpoint?: string;
+  sessionId?: string;
   initialMessages?: Message[];
   onResponse?: (message: Message) => void;
   onError?: (error: Error) => void;
@@ -17,6 +18,7 @@ export type UseChatProps = {
 export function useChat({
   apiEndpoint = 'http://localhost:8000/api/chat',
   initialMessages = [],
+  sessionId = '',
   onResponse,
   onError,
 }: UseChatProps = {}) {
@@ -61,8 +63,9 @@ export function useChat({
           body: JSON.stringify({
             messages: currentMessages.map(msg => ({ 
               role: msg.role, 
-              content: msg.content 
+              content: msg.content
             })),
+            session_id: sessionId,
             model: 'gpt-4o-mini',
           }),
         });
