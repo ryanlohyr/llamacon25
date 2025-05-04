@@ -49,7 +49,7 @@ def is_negative_feedback(user_query):
 def is_positive_feedback(user_query):
     query_emb = embedder.encode(user_query, convert_to_tensor=True)
     examples = embedder.encode(POSITIVE_SEMANTIC_INTENTS, convert_to_tensor=True)
-    similarity = util.cos_sim(q_emb, examples)
+    similarity = util.cos_sim(query_emb, examples)
     return similarity.max() > 0.6 
    # tune threshold if needed
 
