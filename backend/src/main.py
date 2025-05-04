@@ -116,6 +116,7 @@ class ChatRequest(BaseModel):
     messages: List[ChatMessage]
     model: str = "gpt-3.5-turbo"
     session_id: str = None
+    memory: bool = False
 
 class EndSessionRequest(BaseModel):
     session_id: str
@@ -193,14 +194,14 @@ def build_prompt_from_chain(chain, new_question):
         return new_question
         
     chat_log = "\n".join([f"Q: {turn['q']}\nA: {turn['a']}" for turn in chain["question_chain"]])
-    return f"""Previously, a user had a similar problem. Here's how they solved it:
+    return f"""Previously, the user had a similar problem. Here's how they solved it:
 
             {chat_log}
 
             Final working code:
             {chain['final_code']}
 
-            Now answer this new question:
+            Now answer this new question, if the previous questions are related, describe them in your answer:
             {new_question}
             """
 
@@ -213,6 +214,7 @@ async def create_chat_completion(request: ChatRequest):
 
     try:
         session_id = request.session_id
+        toggle_memory = request.memory
         
         # Get user's message
         user_messages = [msg for msg in request.messages if msg.role == "user"]
@@ -233,15 +235,21 @@ async def create_chat_completion(request: ChatRequest):
         # Look for a similar successful chain
         best_chain = find_best_chain(current_question)
 
-        hidden_prompt = build_prompt_from_chain(best_chain, current_question)
+        if toggle_memory:
+            hidden_prompt = build_prompt_from_chain(best_chain, current_question)
+        else:
+            hidden_prompt = None
 
-        system_prompt = "You are a helpful assistant that can answer questions and help with tasks."
+        system_prompt = "You are a helpful assistant that can answer questions and help with tasks. "
         
         # Prepare messages for the API call
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": hidden_prompt},
         ]
+        
+        # Add hidden prompt if available
+        if hidden_prompt:
+            messages.append({"role": "user", "content": hidden_prompt})
         
         # Add user messages
         messages.extend([{"role": msg.role, "content": msg.content} for msg in request.messages])

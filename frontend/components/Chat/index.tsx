@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useChat } from '@/hooks/useChat';
 import { Send } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function Chat({ sessionId }: { sessionId?  : string }) {
+
+  const [memory, setMemory] = useState<boolean>(false);
+
   const { 
     messages, 
     input, 
@@ -15,7 +18,8 @@ export function Chat({ sessionId }: { sessionId?  : string }) {
     handleSubmit, 
     isLoading 
   } = useChat({
-    sessionId: sessionId
+    sessionId: sessionId,
+    memory: memory
   });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -25,10 +29,15 @@ export function Chat({ sessionId }: { sessionId?  : string }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  console.log("memory", memory);
+
   return (
     <div className="flex flex-col h-[80vh] border rounded-lg shadow-md overflow-hidden bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="p-4 border-b bg-white dark:bg-gray-800 shadow-sm">
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Chat with AI</h2>
+        <Button onClick={() => setMemory(!memory)}>
+          {memory ? "Disable Memory" : "Enable Memory"}
+        </Button>
       </div>
       
       <div className="flex-1 overflow-y-auto p-6 space-y-4">

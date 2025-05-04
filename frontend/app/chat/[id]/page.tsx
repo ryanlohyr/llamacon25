@@ -33,7 +33,7 @@ export default function ChatPage() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="w-full border rounded-lg shadow-sm dark:bg-gray-800 h-[80vh]">
-          <Graph />
+          <Graph id={id as string} />
         </div>
         <div className="w-full">
           <Chat sessionId={id as string} />

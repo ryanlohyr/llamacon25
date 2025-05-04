@@ -23,7 +23,7 @@ interface GraphData {
   links: Link[];
 }
 
-export const Graph = () => {
+export const Graph = ({ id }: { id: string }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   
   // Type definition for D3 drag event
@@ -50,8 +50,9 @@ export const Graph = () => {
       // Questions for Web Development
       { id: "React vs Angular", group: 3, type: 'question', content: "Comparing frontend frameworks", strength: 6 },
       { id: "CSS best practices", group: 3, type: 'question', content: "Modern CSS approaches", strength: 5 },
-      { id: "Backend technologies", group: 3, type: 'question', content: "Popular backend options", strength: 7 }
-    ],
+      { id: "Backend technologies", group: 3, type: 'question', content: "Popular backend options", strength: 7 },
+      !!id  ? null : { id: "My tailwind styles arent showing", group: 3, type: 'question', content: "I want to learn React programming", strength: 5 }
+    ].filter(Boolean),
     links: [
       // Link questions to their categories
       { source: "Programming", target: "How to learn Python?", value: 1 },
@@ -65,6 +66,7 @@ export const Graph = () => {
       { source: "Web Development", target: "React vs Angular", value: 1 },
       { source: "Web Development", target: "CSS best practices", value: 1 },
       { source: "Web Development", target: "Backend technologies", value: 1 },
+      ...(id ? [] : [{ source: "Web Development", target: "My tailwind styles arent showing", value: 1 }]),
       
       // Some cross-category connections
       { source: "Programming", target: "Machine learning basics", value: 1 },
