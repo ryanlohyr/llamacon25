@@ -154,21 +154,21 @@ def session_outcome(session):
 
     return final_output, tests_passed, error_count
 
-def reward(session):
-    final_output, tests_passed, error_count = session_outcome(session)
-    session["final_output"] = final_output
-    session["tests_passed"] = tests_passed
-    session["error_count"] = error_count
-    session["chain_length"] = len(session["question_chain"])
-
-    if tests_passed:
+def score_turn(turn):
+    if is_positive_feedback(turn["q"]):
         return 1.0
-    elif error_count > 0:
+    elif is_negative_feedback(turn["q"]):
         return -0.5
-    elif session["chain_length"] > 10:
-        return -0.3
     else:
-        return 0.0
+        return 0.0  # neutral feedback
+
+def cumulative_reward(session):
+    total = 0.0
+    for turn in session["question_chain"]:
+        total += score_turn(turn)
+    session["cumulative_score"] = round(total, 3)
+    return session["cumulative_score"]
+
 
 def find_best_chain(query):
     global index, session_memory
@@ -302,7 +302,7 @@ async def end_session(request: EndSessionRequest):
             session["final_code"] = request.final_code
         
         # Calculate reward
-        reward_score = reward(session)
+        reward_score = cumulative_reward(session)
         session["score"] = reward_score
         
         # Add to session memory
