@@ -1,7 +1,7 @@
 'use client';
 
 import { Message } from '@/hooks/useChat';
-
+import { Markdown } from './Markdown';
 type MessageItemProps = {
   message: Message;
   isLoading?: boolean;
@@ -27,7 +27,7 @@ export function MessageItem({ message, isLoading, isLastMessage }: MessageItemPr
               : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100'
           }`}
         >
-          {message.content || (isLoading && isLastMessage ? '...' : '')}
+          <Markdown>{message.content}</Markdown>
         </div>
         
         {isUser && (
