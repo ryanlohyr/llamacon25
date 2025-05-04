@@ -13,6 +13,7 @@ import faiss
 import json
 import uuid
 
+
 # Load environment variables from .env file
 # Try to load from current directory and parent directory
 load_dotenv()
@@ -62,7 +63,7 @@ NEGATIVE_SEMANTIC_INTENTS = [
 
 
 # File to store chat sessions
-SESSIONS_FILE = "session_memory.json"
+SESSIONS_FILE = "intial_session_memory.json"
 
 # Initialize or load session memory
 def load_session_memory():
@@ -85,6 +86,8 @@ def save_session_memory(sessions):
 
 # Load session memory
 session_memory = load_session_memory()
+
+intial_session_memory = []
 
 
 # Initialize FAISS index
@@ -327,3 +330,42 @@ async def end_session(request: EndSessionRequest):
         print("Error: ", e)
         print("Stack trace: ", traceback.format_exc())  
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.get("/api/initialize-memory")
+async def initialize_memory():
+
+    dataset = []
+
+    # load dataset.jsonl
+    with open("/Users/ryanloh/hackathons/llamacon25/backend/src/dataset.jsonl", "r") as f:
+        for line in f:
+            data = json.loads(line)
+            dataset.append(data)
+
+    print("dataset: ", dataset)
+
+    for data in dataset:
+        print("data: ", data)
+        data['reward'] = reward(data)
+
+        # add to session memory
+        intial_session_memory.append(data)
+
+    with open('intial_session_memory.json', 'w') as f:
+        json.dump(intial_session_memory, f, indent=2)
+
+    # save session memory
+    # save_session_memory(intial_session_memory)
+
+    return None
+
+
+@app.get("/api/load-graph")
+async def load_graph():
+    # i have  datastructure like this 
+    # i need to categorize them into categories 
+
+    
+    return get_graph_data()
