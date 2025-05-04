@@ -116,7 +116,12 @@ session_memory = [
     }
 ]
 
-# Scoring all the sessions
+# Session memory can be liaded
+
+file_path = # Set it to the Json file
+with open(file_path, 'r') as file:
+    session_memory = [json.loads(line) for line in file]
+    
 for s in session_memory:
     s["score"] = reward(s)
 
@@ -150,14 +155,11 @@ Now answer this new question:
 {new_question}
 """
 
-#### Test Run ###
-""" 
+####  Run ###
 
-user_q = "Why is Flask giving me a CORS error?"
+
+user_q = # get it from the API
 best = find_best_chain(user_q)
 prompt = build_prompt_from_chain(best, user_q)
 
-print(f"--- Selected Session: {best['session_id']} (Score: {best['score']}) ---\n")
 
-"""
-print(prompt)
